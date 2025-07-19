@@ -8,94 +8,51 @@
 
 ```mermaid
 classDiagram
-    %% 애플리케이션 진입점
+    %% 1단계: 단순한 3계층 구조
+    
     class main {
-        +main() int
-        -signalHandler(int signal) void
-        -serverInstance: unique_ptr~OatppServerWrapper~
+        <<진입점>>
+        +main()
+        +signalHandler()
     }
 
-    %% 인프라스트럭처 레이어 - Oatpp 래퍼
     class OatppServerWrapper {
-        -connectionProvider: shared_ptr~ServerConnectionProvider~
-        -connectionHandler: shared_ptr~HttpConnectionHandler~
-        -server: shared_ptr~Server~
-        -port: int
-        +OatppServerWrapper(port: int)
-        +~OatppServerWrapper()
-        +initialize() void
-        +start() void
-        +stop() void
-        +getPort() int
+        <<서버 래퍼>>
+        +initialize()
+        +start()
+        +stop()
     }
 
-    %% 프레젠테이션 레이어 - 컨트롤러
     class HttpController {
-        +HttpController()
-        +createShared() shared_ptr~HttpController~
-        +health() shared_ptr~Response~
-        +root() shared_ptr~Response~
+        <<HTTP 컨트롤러>>
+        +health()
+        +root()
     }
 
-    %% 외부 의존성 - oatpp 프레임워크
-    class ApiController {
-        <<oatpp::web::server::api::ApiController>>
-        #objectMapper: shared_ptr~ObjectMapper~
-        +createResponse(status, body) shared_ptr~Response~
-        +createDtoResponse(status, dto) shared_ptr~Response~
+    class OatppFramework {
+        <<외부 프레임워크>>
+        Router, Server, Handler
+        ObjectMapper
     }
 
-    class HttpRouter {
-        <<oatpp::web::server::HttpRouter>>
-        +createShared() shared_ptr~HttpRouter~
-        +addController(controller) void
-    }
+    %% 직접적인 의존 관계
+    main --> OatppServerWrapper : 생성/소유
+    OatppServerWrapper --> HttpController : 등록
+    OatppServerWrapper --> OatppFramework : 직접 사용
+    HttpController --> OatppFramework : 직접 상속
 
-    class HttpConnectionHandler {
-        <<oatpp::web::server::HttpConnectionHandler>>
-        +createShared(router) shared_ptr~HttpConnectionHandler~
-    }
-
-    class ServerConnectionProvider {
-        <<oatpp::network::tcp::server::ConnectionProvider>>
-        +createShared(address) shared_ptr~ConnectionProvider~
-    }
-
-    class Server {
-        <<oatpp::network::Server>>
-        +createShared(provider, handler) shared_ptr~Server~
-        +run() void
-        +stop() void
-    }
-
-    class ObjectMapper {
-        <<oatpp::parser::json::mapping::ObjectMapper>>
-        +createShared() shared_ptr~ObjectMapper~
-    }
-
-    %% 관계
-    main --> OatppServerWrapper : 소유
-    OatppServerWrapper --> HttpController : 생성
-    OatppServerWrapper --> HttpRouter : 사용
-    OatppServerWrapper --> HttpConnectionHandler : 사용  
-    OatppServerWrapper --> ServerConnectionProvider : 사용
-    OatppServerWrapper --> Server : 사용
-
-    HttpController --|> ApiController : 상속
-    HttpController --> ObjectMapper : 사용
-
-    HttpConnectionHandler --> HttpRouter : 의존
-    Server --> ServerConnectionProvider : 의존
-    Server --> HttpConnectionHandler : 의존
-
-    %% 구성 관계
-    OatppServerWrapper *-- HttpRouter : 생성
-    OatppServerWrapper *-- HttpConnectionHandler : 생성
-    OatppServerWrapper *-- ServerConnectionProvider : 생성
-    OatppServerWrapper *-- Server : 생성
-
-    HttpRouter o-- HttpController : 포함
+    %% 주석: 현재는 레이어 분리 없음
+    note for main "애플리케이션 시작점"
+    note for OatppServerWrapper "oatpp 프레임워크 감싸기"
+    note for HttpController "REST API 엔드포인트"
+    note for OatppFramework "서드파티 라이브러리"
 ```
+
+### 현재 1단계 특징
+- **단순한 구조**: 명확한 레이어 분리 없음
+- **직접 의존성**: 각 클래스가 oatpp에 직접 의존
+- **Wrapper 패턴**: OatppServerWrapper가 복잡성 숨김
+- **향후 확장 준비**: Clean Architecture 적용 예정 (2-4단계)
 
 ## 파일 구조
 
