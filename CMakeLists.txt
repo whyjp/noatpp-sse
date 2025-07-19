@@ -9,7 +9,22 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(BUILD_SHARED_LIBS OFF)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
+# Force all libraries to use static runtime (MT)
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+
+# Set compiler flags for static linking
+if(MSVC)
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd")
+    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} /MT")
+    set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} /MTd")
+endif()
+
 # Add third-party libraries as subdirectories
+# Configure oatpp to use static runtime
+set(OATPP_BUILD_SHARED OFF CACHE INTERNAL "")
+set(OATPP_BUILD_TESTS OFF CACHE INTERNAL "")
+set(OATPP_COMPAT_BUILD_NO_THREAD_LOCAL OFF CACHE INTERNAL "")
 add_subdirectory(third_party/oatpp)
 
 # Skip websocket for now - will add later
@@ -21,11 +36,13 @@ add_subdirectory(third_party/json)
 
 # fmt library
 set(FMT_INSTALL OFF CACHE INTERNAL "")
+set(FMT_USE_WINDOWS_H OFF CACHE INTERNAL "")
 add_subdirectory(third_party/fmt)
 
 # spdlog library
 set(SPDLOG_BUILD_SHARED OFF CACHE INTERNAL "")
 set(SPDLOG_FMT_EXTERNAL ON CACHE INTERNAL "")
+set(SPDLOG_ENABLE_PCH OFF CACHE INTERNAL "")
 add_subdirectory(third_party/spdlog)
 
 # Source files
@@ -63,7 +80,7 @@ endif()
 
 # Compiler specific options
 if(MSVC)
-    target_compile_options(${PROJECT_NAME} PRIVATE /W4 /MT)
+    target_compile_options(${PROJECT_NAME} PRIVATE /W4)
     set_property(TARGET ${PROJECT_NAME} PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded")
 else()
     target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic)

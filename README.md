@@ -1,101 +1,105 @@
-# Oatpp SSE Server
+# Oatpp SSE 서버
 
-Simple oatpp-based HTTP server with WebSocket and SSE support.
+WebSocket과 SSE를 지원하는 간단한 oatpp 기반 HTTP 서버입니다.
 
-## Prerequisites
+## 사전 요구사항
 
 - CMake 3.20+
-- C++20 compatible compiler
+- C++20 호환 컴파일러
 - Git
 
 ### Windows
-- Visual Studio 2022 or later
+- Visual Studio 2022 이상
 - Git for Windows
 
 ### Linux/Unix
-- GCC 10+ or Clang 12+
+- GCC 10+ 또는 Clang 12+
 - Make
 
-## Quick Start
+## 빠른 시작
 
 ### Windows
 ```batch
-# Clean build (optional)
+# 클린 빌드 (선택사항)
 build.bat clean
 
-# Build
+# 빌드
 build.bat
 
-# Run server
+# 서버 실행
 run.bat
 ```
 
 ### Linux/Unix
 ```bash
-# Clean build (optional)
+# 클린 빌드 (선택사항)
 chmod +x *.sh
 ./build.sh clean
 
-# Build
+# 빌드
 ./build.sh
 
-# Run server
+# 서버 실행
 ./run.sh
 ```
 
-## Build Directory Structure
+## 빌드 디렉토리 구조
 
-The build system creates separate directories for each platform:
-- `build-windows/` - Windows build files and executable
-- `build-linux/` - Linux build files and executable
+빌드 시스템은 각 플랫폼별로 별도의 디렉토리를 생성합니다:
+- `build-windows/` - Windows 빌드 파일 및 실행 파일
+- `build-linux/` - Linux 빌드 파일 및 실행 파일
 
-## Available Scripts
+## 사용 가능한 스크립트
 
-### Build Scripts
-- `build.sh [clean]` - Linux build script
-- `build.bat [clean]` - Windows build script
+### 빌드 스크립트
+- `build.sh [clean]` - Linux 빌드 스크립트
+- `build.bat [clean]` - Windows 빌드 스크립트
 
-### Run Scripts  
-- `run.sh` - Start Linux server
-- `run.bat` - Start Windows server
+### 실행 스크립트  
+- `run.sh` - Linux 서버 시작
+- `run.bat` - Windows 서버 시작
 
-### Clean Scripts
-- `clean.sh` - Clean all build directories
-- `clean.bat` - Clean all build directories
+### 정리 스크립트
+- `clean.sh` - 모든 빌드 디렉토리 정리
+- `clean.bat` - 모든 빌드 디렉토리 정리
 
-### Dependency Scripts
-- `setup_dependencies.sh` - Download dependencies (Linux)
-- `setup_dependencies.bat` - Download dependencies (Windows)
+### 의존성 스크립트
+- `setup_dependencies.sh` - 의존성 다운로드 (Linux)
+- `setup_dependencies.bat` - 의존성 다운로드 (Windows)
 
-## Endpoints
+## 엔드포인트
 
-- `GET /` - Root endpoint: "Oatpp SSE Server is running!"
-- `GET /api/health` - Health check endpoint: JSON with status, message, timestamp
+- `GET /` - 루트 엔드포인트: "Oatpp SSE Server is running!"
+- `GET /api/health` - 헬스 체크 엔드포인트: 상태, 메시지, 타임스탬프가 포함된 JSON
 
-## Server Configuration
+## 서버 구성
 
-- **Port**: 8080
-- **Host**: localhost
-- **Endpoints**: http://localhost:8080/ and http://localhost:8080/api/health
+- **포트**: 8080
+- **호스트**: localhost
+- **엔드포인트**: http://localhost:8080/ 및 http://localhost:8080/api/health
 
-## Project Structure
+## 프로젝트 구조
 
 ```
 ├── src/
-│   ├── infrastructure/oatpp/     # Oatpp wrapper classes
-│   ├── presentation/controllers/ # HTTP controllers
-│   └── main.cpp                  # Application entry point
-├── third_party/                  # External dependencies (auto-downloaded)
-├── build-windows/                # Windows build output
-├── build-linux/                  # Linux build output
-├── CMakeLists.txt               # Build configuration
-├── *.sh, *.bat                  # Build/run scripts
-└── README.md                    # This file
+│   ├── infrastructure/oatpp/     # Oatpp 래퍼 클래스들
+│   ├── presentation/controllers/ # HTTP 컨트롤러들
+│   └── main.cpp                  # 애플리케이션 진입점
+├── documents/                    # 프로젝트 문서
+│   ├── PROJECT_DESIGN.md        # 전체 프로젝트 설계
+│   ├── BUILD_INSTRUCTIONS.md    # 상세 빌드 가이드
+│   └── PHASE1_ARCHITECTURE.md   # 1단계 아키텍처 문서
+├── third_party/                  # 외부 의존성 (자동 다운로드)
+├── build-windows/                # Windows 빌드 출력
+├── build-linux/                  # Linux 빌드 출력
+├── CMakeLists.txt               # 빌드 구성
+├── *.sh, *.bat                  # 빌드/실행 스크립트
+└── README.md                    # 이 파일
 ```
 
-## Development
+## 개발
 
-1. **Clean build**: `./build.sh clean` or `build.bat clean`
-2. **Build**: `./build.sh` or `build.bat`  
-3. **Run**: `./run.sh` or `run.bat`
-4. **Test**: `curl http://localhost:8080/api/health`
+1. **클린 빌드**: `./build.sh clean` 또는 `build.bat clean`
+2. **빌드**: `./build.sh` 또는 `build.bat`  
+3. **실행**: `./run.sh` 또는 `run.bat`
+4. **테스트**: `curl http://localhost:8080/api/health`

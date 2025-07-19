@@ -6,12 +6,12 @@
 - KISS/SOLID 원칙과 Clean Architecture를 적용한 C++ 웹 서버 구현
 - Oatpp 라이브러리를 래핑하여 이식성 확보
 - HTTP, WebSocket, SSE를 통한 실시간 통신 지원
-- JSON-RPC 2.0 기반 Subscribe/Unsubscribe 패턴 구현
+- JSON-RPC 2.0 기반 구독/구독해제 패턴 구현
 
 ### 1.2 단계별 구현 계획
-1. **Phase 1**: 기본 Oatpp 서버 구현
-2. **Phase 2**: League of Legends API 프록시 구현
-3. **Phase 3**: MCP 2025 Remote Protocol 구현
+1. **1단계**: 기본 Oatpp 서버 구현
+2. **2단계**: League of Legends API 프록시 구현
+3. **3단계**: MCP 2025 원격 프로토콜 구현
 
 ## 2. 아키텍처 설계
 

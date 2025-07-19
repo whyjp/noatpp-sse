@@ -15,6 +15,10 @@ Thumbs.db
 # Dependencies (will be downloaded by setup scripts)
 third_party/
 
+# Documentation build artifacts
+documents/*.html
+documents/*.pdf
+
 # Executable files
 *.exe
 noatpp-sse
