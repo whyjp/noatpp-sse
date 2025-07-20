@@ -30,9 +30,8 @@ add_subdirectory(third_party/oatpp)
 # Skip websocket for now - will add later
 # add_subdirectory(third_party/oatpp-websocket)
 
-# nlohmann/json is header-only, just include it
-set(JSON_BuildTests OFF CACHE INTERNAL "")
-add_subdirectory(third_party/json)
+# RapidJSON is header-only, just include it
+# No need to add as subdirectory, just include the headers
 
 # fmt library
 set(FMT_INSTALL OFF CACHE INTERNAL "")
@@ -65,13 +64,15 @@ add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS})
 target_link_libraries(${PROJECT_NAME} PRIVATE
     oatpp
     # oatpp-websocket  # Skip for now
-    nlohmann_json::nlohmann_json
     fmt::fmt
     spdlog::spdlog
 )
 
 # Include directories
-target_include_directories(${PROJECT_NAME} PRIVATE src)
+target_include_directories(${PROJECT_NAME} PRIVATE 
+    src
+    third_party/rapidjson/include
+)
 
 # Windows specific libraries
 if(WIN32)

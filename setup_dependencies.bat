@@ -32,12 +32,12 @@ if not exist "third_party\oatpp-websocket" (
     )
 )
 
-REM Clone nlohmann/json
-if not exist "third_party\json" (
-    echo Cloning nlohmann/json...
-    git clone --depth 1 --branch v3.11.3 https://github.com/nlohmann/json.git third_party\json
+REM Clone RapidJSON
+if not exist "third_party\rapidjson" (
+    echo Cloning RapidJSON...
+    git clone --depth 1 --branch v1.1.0 https://github.com/Tencent/rapidjson.git third_party\rapidjson
     if %errorlevel% neq 0 (
-        echo ERROR: Failed to clone nlohmann/json
+        echo ERROR: Failed to clone RapidJSON
         exit /b 1
     )
 )

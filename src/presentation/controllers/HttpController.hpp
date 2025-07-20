@@ -4,7 +4,7 @@
 #include "oatpp/core/macro/codegen.hpp"
 #include "oatpp/core/macro/component.hpp"
 #include "oatpp/parser/json/mapping/ObjectMapper.hpp"
-#include <ctime>
+#include "../../domain/models/HealthStatus.hpp"
 
 #include OATPP_CODEGEN_BEGIN(ApiController)
 
@@ -18,10 +18,10 @@ public:
     }
     
     ENDPOINT("GET", "/api/health", health) {
-        // Simple JSON response without DTO
-        auto response = createResponse(Status::CODE_200, 
-            "{\"status\":\"OK\",\"message\":\"Server is running\",\"timestamp\":" + 
-            std::to_string(std::time(nullptr)) + "}");
+        // Jsonable 인터페이스를 사용한 깔끔한 JSON 응답 생성
+        domain::HealthStatus healthStatus;
+        
+        auto response = createResponse(Status::CODE_200, healthStatus.toJson());
         response->putHeader(Header::CONTENT_TYPE, "application/json");
         return response;
     }

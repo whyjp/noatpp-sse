@@ -15,10 +15,10 @@ if [ ! -d "third_party/oatpp-websocket" ]; then
     git clone --depth 1 --branch 1.3.0 https://github.com/oatpp/oatpp-websocket.git third_party/oatpp-websocket
 fi
 
-# Clone nlohmann/json
-if [ ! -d "third_party/json" ]; then
-    echo "Cloning nlohmann/json..."
-    git clone --depth 1 --branch v3.11.3 https://github.com/nlohmann/json.git third_party/json
+# Clone RapidJSON
+if [ ! -d "third_party/rapidjson" ]; then
+    echo "Cloning RapidJSON..."
+    git clone --depth 1 --branch v1.1.0 https://github.com/Tencent/rapidjson.git third_party/rapidjson
 fi
 
 # Clone fmt
