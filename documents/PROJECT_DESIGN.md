@@ -1,276 +1,329 @@
-# Oatpp 기반 WebSocket/SSE 서버 프로젝트 설계 문서
+# Oatpp 기반 C++ SDK 프로젝트 설계 문서
 
 ## 1. 프로젝트 개요
 
 ### 1.1 목표
-- KISS/SOLID 원칙과 Clean Architecture를 적용한 C++ 웹 서버 구현
+- **단순한 사용성**을 가진 C++ HTTP/WebSocket/SSE SDK 구현
 - Oatpp 라이브러리를 래핑하여 이식성 확보
-- HTTP, WebSocket, SSE를 통한 실시간 통신 지원
-- JSON-RPC 2.0 기반 구독/구독해제 패턴 구현
+- 복잡한 웹 프레임워크 개념 없이 **API 서빙**과 **실시간 통신**에 집중
+- **MCP (Model Context Protocol)** 구현을 위한 특화 기능 제공
+- 간단한 핸들러 기반 아키텍처
 
 ### 1.2 단계별 구현 계획
-1. **1단계**: 기본 Oatpp 서버 구현
-2. **2단계**: League of Legends API 프록시 구현
-3. **3단계**: MCP 2025 원격 프로토콜 구현
+1. **Phase 1**: 기본 HTTP 서버와 JSON 처리 (완료)
+2. **Phase 2**: WebSocket 및 SSE 기본 기능
+3. **Phase 3**: MCP 프로토콜 특화 구현
+4. **Phase 4**: SDK 사용성 개선 및 Fluent API
 
-## 2. 아키텍처 설계
+## 2. SDK 아키텍처 설계
 
-### 2.1 Clean Architecture 레이어 구조
+### 2.1 단순한 핸들러 기반 구조
 
 ```
 ┌─────────────────────────────────────────┐
-│           Presentation Layer            │
-│  (Controllers, WebSocket Handlers)     │
+│              SDK Public API             │
+│         (OatppSDK, Builder)            │
 ├─────────────────────────────────────────┤
-│           Application Layer             │
-│     (Use Cases, Services)              │
+│            Handler Layer                │
+│  (HTTP, WebSocket, SSE, MCP Handlers)  │
 ├─────────────────────────────────────────┤
-│            Domain Layer                 │
-│    (Entities, Value Objects)           │
-├─────────────────────────────────────────┤
-│          Infrastructure Layer          │
-│   (Oatpp Wrappers, External APIs)     │
+│           Infrastructure Layer          │
+│      (Oatpp Wrappers, JSON Utils)     │
 └─────────────────────────────────────────┘
 ```
 
-### 2.2 모듈 구조
+### 2.2 SDK 모듈 구조
 
 ```
 src/
-├── domain/
-│   ├── entities/
-│   │   ├── Subscription.hpp
-│   │   └── Message.hpp
-│   ├── repositories/
-│   │   ├── ISubscriptionRepository.hpp
-│   │   └── IMessageRepository.hpp
-│   └── services/
-│       └── INotificationService.hpp
-├── application/
-│   ├── usecases/
-│   │   ├── SubscriptionUseCase.hpp
-│   │   └── MessageUseCase.hpp
-│   └── services/
-│       └── NotificationService.hpp
+├── sdk/
+│   ├── OatppSDK.hpp                    # 메인 SDK 클래스
+│   ├── SDKBuilder.hpp                  # Fluent API 빌더
+│   └── handlers/
+│       ├── HttpHandler.hpp             # HTTP 엔드포인트 핸들러
+│       ├── WebSocketHandler.hpp        # WebSocket 메시지 핸들러  
+│       ├── SSEHandler.hpp              # SSE 이벤트 핸들러
+│       └── MCPHandler.hpp              # MCP 프로토콜 핸들러
 ├── infrastructure/
-│   ├── oatpp/
-│   │   ├── OatppServerWrapper.hpp
-│   │   ├── OatppControllerWrapper.hpp
-│   │   └── OatppWebSocketWrapper.hpp
-│   ├── repositories/
-│   │   ├── InMemorySubscriptionRepository.hpp
-│   │   └── InMemoryMessageRepository.hpp
-│   └── external/
-│       └── LoLApiClient.hpp
-└── presentation/
-    ├── controllers/
-    │   ├── HttpController.hpp
-    │   ├── WebSocketController.hpp
-    │   └── SSEController.hpp
-    ├── handlers/
-    │   ├── JsonRpcHandler.hpp
-    │   └── SubscriptionHandler.hpp
-    └── main.cpp
+│   ├── json/
+│   │   ├── Jsonable.hpp                # JSON 직렬화 인터페이스
+│   │   └── JsonHelper.hpp              # JSON 유틸리티
+│   └── oatpp/
+│       ├── OatppServerWrapper.hpp      # 서버 래퍼
+│       ├── WebSocketManager.hpp        # WebSocket 연결 관리
+│       └── SSEManager.hpp              # SSE 연결 관리
+└── examples/
+    ├── simple_api_server.cpp           # 기본 API 서버 예제
+    ├── websocket_echo.cpp              # WebSocket 에코 서버 예제
+    ├── sse_notifications.cpp           # SSE 알림 서버 예제
+    └── mcp_server.cpp                  # MCP 서버 예제
 ```
 
 ## 3. 기술 스택
 
 ### 3.1 핵심 라이브러리
 - **Oatpp**: HTTP/WebSocket 서버 프레임워크
-- **nlohmann/json**: JSON 처리
+- **RapidJSON**: JSON 처리 (Phase 1.5에서 도입)
 - **fmt**: 문자열 포맷팅
 - **spdlog**: 로깅
 
-### 3.2 빌드 시스템
-- **CMake**: 빌드 관리
-- **vcpkg**: 패키지 관리 (Windows)
+### 3.2 SDK 특징
+- **헤더 온리**: 간단한 포함으로 사용 가능
+- **정적 링킹**: 의존성 최소화
+- **크로스 플랫폼**: Windows/Linux/macOS 지원
+- **단순한 API**: 복잡한 설정 없이 즉시 사용
 
-## 4. API 명세
+## 4. SDK 사용법
 
-### 4.1 HTTP REST API
+### 4.1 기본 HTTP 서버
 
-#### 4.1.1 기본 엔드포인트
+```cpp
+#include "sdk/OatppSDK.hpp"
+
+int main() {
+    auto sdk = OatppSDK::builder()
+        .port(8080)
+        .build();
+    
+    // 간단한 GET 엔드포인트
+    sdk.addEndpoint("GET", "/api/health", [](const Request& req) {
+        return Response::ok("{\"status\":\"OK\"}");
+    });
+    
+    // JSON 응답 자동 처리
+    sdk.addJsonEndpoint("GET", "/api/data", [](const Request& req) {
+        return JsonResponse{{"message", "Hello World"}};
+    });
+    
+    sdk.start();
+    return 0;
+}
 ```
-GET  /api/health          - 서버 상태 확인
-GET  /api/subscriptions   - 구독 목록 조회
-POST /api/subscriptions   - 구독 생성
-DELETE /api/subscriptions/{id} - 구독 삭제
+
+### 4.2 WebSocket 서버
+
+```cpp
+#include "sdk/OatppSDK.hpp"
+
+int main() {
+    auto sdk = OatppSDK::builder()
+        .port(8080)
+        .enableWebSocket()
+        .build();
+    
+    // WebSocket 메시지 핸들러
+    sdk.addWebSocketHandler("/ws", {
+        .onConnect = [](WebSocketClient& client) {
+            client.send("{\"type\":\"welcome\"}");
+        },
+        .onMessage = [](WebSocketClient& client, const std::string& message) {
+            // 에코 서버
+            client.send("Echo: " + message);
+        },
+        .onDisconnect = [](WebSocketClient& client) {
+            // 정리 작업
+        }
+    });
+    
+    sdk.start();
+    return 0;
+}
 ```
 
-#### 4.1.2 SSE 엔드포인트
-```
-GET /api/events           - SSE 스트림 연결
-GET /api/events/{topic}   - 특정 토픽 SSE 스트림
+### 4.3 SSE 서버
+
+```cpp
+#include "sdk/OatppSDK.hpp"
+
+int main() {
+    auto sdk = OatppSDK::builder()
+        .port(8080)
+        .enableSSE()
+        .build();
+    
+    // SSE 스트림 엔드포인트
+    sdk.addSSEEndpoint("/events", [](SSEClient& client) {
+        // 클라이언트 연결 시 호출
+        client.send("data", "Connected to events");
+    });
+    
+    // 주기적 이벤트 전송
+    sdk.scheduleSSE(std::chrono::seconds(5), [&sdk](auto timestamp) {
+        sdk.broadcastSSE("/events", "ping", "Server ping");
+    });
+    
+    sdk.start();
+    return 0;
+}
 ```
 
-### 4.2 WebSocket API
+### 4.4 MCP 서버
 
-#### 4.2.1 JSON-RPC 2.0 메시지 포맷
+```cpp
+#include "sdk/OatppSDK.hpp"
+#include "sdk/handlers/MCPHandler.hpp"
+
+int main() {
+    auto sdk = OatppSDK::builder()
+        .port(8080)
+        .enableMCP()
+        .build();
+    
+    // MCP 프로토콜 핸들러
+    sdk.addMCPHandler({
+        .tools = {
+            {"get_weather", [](const MCPRequest& req) {
+                return MCPResponse::success("Sunny, 25°C");
+            }},
+            {"send_email", [](const MCPRequest& req) {
+                return MCPResponse::success("Email sent");
+            }}
+        },
+        .resources = {
+            {"config.json", [](const MCPRequest& req) {
+                return MCPResponse::resource("application/json", configData);
+            }}
+        }
+    });
+    
+    sdk.start();
+    return 0;
+}
+```
+
+## 5. MCP 프로토콜 지원
+
+### 5.1 MCP (Model Context Protocol) 개요
+- AI 모델과 컨텍스트 간의 표준화된 통신 프로토콜
+- 도구(Tools), 리소스(Resources), 프롬프트(Prompts) 제공
+- JSON-RPC 기반 메시지 교환
+
+### 5.2 MCP 메시지 형식
+
+#### 도구 호출 요청
 ```json
 {
   "jsonrpc": "2.0",
-  "method": "subscribe",
+  "method": "tools/call",
   "params": {
-    "topic": "game_events",
-    "filters": {}
+    "name": "get_weather",
+    "arguments": {
+      "location": "Seoul"
+    }
   },
   "id": 1
 }
 ```
 
-#### 4.2.2 지원 메서드
-- `subscribe`: 토픽 구독
-- `unsubscribe`: 토픽 구독 해제
-- `list_subscriptions`: 구독 목록 조회
-
-### 4.3 League of Legends API 프록시
-
-#### 4.3.1 프록시 엔드포인트
-```
-GET /lol/summoner/v4/summoners/by-name/{summonerName}
-GET /lol/match/v5/matches/by-puuid/{puuid}/ids
-GET /lol/match/v5/matches/{matchId}
+#### 리소스 요청
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "resources/read",
+  "params": {
+    "uri": "file://config.json"
+  },
+  "id": 2
+}
 ```
 
-## 5. 데이터 모델
-
-### 5.1 Subscription Entity
+### 5.3 SDK에서 MCP 구현
 ```cpp
-class Subscription {
-private:
-    std::string id_;
-    std::string topic_;
-    std::string clientId_;
-    std::chrono::system_clock::time_point createdAt_;
-    std::map<std::string, std::string> filters_;
+// MCP 핸들러 정의
+MCPHandler mcpHandler;
+mcpHandler.addTool("get_weather", [](const json& args) {
+    std::string location = args["location"];
+    return json{{"temperature", "25°C"}, {"condition", "sunny"}};
+});
 
-public:
-    // SOLID 원칙 적용: 불변성 보장
-    const std::string& getId() const;
-    const std::string& getTopic() const;
-    const std::string& getClientId() const;
-    // ... 기타 getter 메서드
-};
+mcpHandler.addResource("config", [](const std::string& uri) {
+    return ResourceResponse::json(loadConfig());
+});
+
+sdk.addMCPHandler("/mcp", mcpHandler);
 ```
 
-### 5.2 Message Entity
+## 6. 에러 처리 전략
+
+### 6.1 간단한 예외 처리
 ```cpp
-class Message {
-private:
-    std::string id_;
-    std::string topic_;
-    std::string payload_;
-    std::chrono::system_clock::time_point timestamp_;
+// SDK 레벨 예외
+class SDKException : public std::exception {};
+class ConnectionException : public SDKException {};
+class InvalidRequestException : public SDKException {};
 
-public:
-    // Value Object 패턴 적용
-    const std::string& getId() const;
-    const std::string& getTopic() const;
-    const std::string& getPayload() const;
-    // ... 기타 getter 메서드
-};
+// 사용법
+try {
+    sdk.start();
+} catch (const SDKException& e) {
+    std::cerr << "SDK Error: " << e.what() << std::endl;
+}
 ```
 
-## 6. 의존성 주입 설계
+## 7. SDK 설정 및 빌드
 
-### 6.1 DI Container 구조
+### 7.1 간단한 설정
 ```cpp
-class DIContainer {
-private:
-    std::shared_ptr<ISubscriptionRepository> subscriptionRepo_;
-    std::shared_ptr<IMessageRepository> messageRepo_;
-    std::shared_ptr<INotificationService> notificationService_;
-
-public:
-    template<typename T>
-    std::shared_ptr<T> resolve();
-    
-    void configure();
-};
+auto sdk = OatppSDK::builder()
+    .port(8080)
+    .threads(4)                    // 워커 스레드 수
+    .enableCORS()                  // CORS 활성화
+    .enableLogging(LogLevel::INFO) // 로깅 레벨
+    .build();
 ```
 
-## 7. 에러 처리 전략
+### 7.2 CMake 통합
+```cmake
+# CMakeLists.txt
+find_package(OatppSDK REQUIRED)
+target_link_libraries(your_app OatppSDK::OatppSDK)
+```
 
-### 7.1 예외 계층 구조
+### 7.3 헤더 온리 사용
 ```cpp
-// 도메인 예외
-class DomainException : public std::exception {};
-class SubscriptionNotFoundException : public DomainException {};
-
-// 애플리케이션 예외
-class ApplicationException : public std::exception {};
-class ValidationException : public ApplicationException {};
-
-// 인프라 예외
-class InfrastructureException : public std::exception {};
-class NetworkException : public InfrastructureException {};
+#include "OatppSDK.hpp"  // 모든 기능 포함
+// 또는 선택적 포함
+#include "OatppSDK/Http.hpp"      // HTTP만
+#include "OatppSDK/WebSocket.hpp" // WebSocket만
+#include "OatppSDK/SSE.hpp"       // SSE만
+#include "OatppSDK/MCP.hpp"       // MCP만
 ```
 
-## 8. 로깅 및 모니터링
+## 8. 실제 사용 사례
 
-### 8.1 로깅 레벨
-- **TRACE**: 상세한 실행 흐름
-- **DEBUG**: 디버깅 정보
-- **INFO**: 일반적인 정보
-- **WARN**: 경고 메시지
-- **ERROR**: 오류 메시지
-
-### 8.2 메트릭 수집
-- 활성 WebSocket 연결 수
-- 구독 수
-- 메시지 처리량
-- 응답 시간
-
-## 9. 테스트 전략
-
-### 9.1 테스트 피라미드
-- **Unit Tests**: 도메인 로직 테스트
-- **Integration Tests**: 레이어 간 통합 테스트
-- **E2E Tests**: 전체 시스템 테스트
-
-### 9.2 Mock 객체 사용
+### 8.1 AI 모델 API 서버
 ```cpp
-class MockSubscriptionRepository : public ISubscriptionRepository {
-    // Mock 구현
-};
+auto sdk = OatppSDK::builder().port(8080).build();
 
-class MockNotificationService : public INotificationService {
-    // Mock 구현
-};
+sdk.addJsonEndpoint("POST", "/api/chat", [](const Request& req) {
+    auto input = req.getJson();
+    auto response = callAIModel(input["message"]);
+    return JsonResponse{{"response", response}};
+});
 ```
 
-## 10. 성능 최적화
+### 8.2 실시간 알림 시스템
+```cpp
+auto sdk = OatppSDK::builder().enableSSE().build();
 
-### 10.1 연결 풀링
-- HTTP 연결 재사용
-- WebSocket 연결 관리
-- 데이터베이스 연결 풀
+sdk.addSSEEndpoint("/notifications", [](SSEClient& client) {
+    // 새 클라이언트 등록
+    notificationService.subscribe(client);
+});
 
-### 10.2 메모리 관리
-- 스마트 포인터 사용
-- RAII 패턴 적용
-- 메모리 누수 방지
+// 알림 전송
+notificationService.broadcast("New message arrived!");
+```
 
-## 11. 보안 고려사항
+### 8.3 게임 서버
+```cpp
+auto sdk = OatppSDK::builder().enableWebSocket().build();
 
-### 11.1 인증 및 권한
-- JWT 토큰 기반 인증
-- 역할 기반 접근 제어
-- Rate Limiting
-
-### 11.2 데이터 보호
-- HTTPS 강제
-- 입력 데이터 검증
-- SQL 인젝션 방지
-
-## 12. 배포 및 운영
-
-### 12.1 컨테이너화
-- Docker 이미지 생성
-- Multi-stage 빌드
-- 헬스 체크 구현
-
-### 12.2 설정 관리
-- 환경별 설정 분리
-- 민감한 정보 암호화
-- 동적 설정 로드 
+sdk.addWebSocketHandler("/game", {
+    .onMessage = [](WebSocketClient& client, const std::string& msg) {
+        auto command = parseGameCommand(msg);
+        auto result = gameEngine.processCommand(command);
+        client.send(result.toJson());
+    }
+});
+``` 

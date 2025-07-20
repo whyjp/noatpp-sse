@@ -1,36 +1,37 @@
-# 1단계 아키텍처 문서 (Phase 1.5 포함)
+# Phase 1 SDK 아키텍처 문서 (Phase 1.5 포함)
 
 ## 개요
 
-1단계는 oatpp 프레임워크를 사용하여 크로스 플랫폼 빌드 지원과 정적 링킹을 갖춘 기본 HTTP 서버를 구현합니다. Phase 1.5에서는 RapidJSON 라이브러리와 Jsonable 인터페이스 패턴을 도입하여 더 깔끔한 JSON 처리를 구현했습니다.
+Phase 1은 단순한 사용성을 가진 C++ SDK의 기반을 구현합니다. 복잡한 웹 프레임워크 개념 대신 **API 서빙**과 **실시간 통신**에 집중한 단순한 핸들러 기반 아키텍처를 구축했습니다. Phase 1.5에서는 RapidJSON과 Jsonable 인터페이스를 도입하여 JSON 처리를 캡슐화했습니다.
 
 ## 아키텍처 다이어그램
 
 ```mermaid
 classDiagram
-    %% Phase 1.5: Jsonable 인터페이스 패턴 포함
+    %% Phase 1.5: SDK 기반 아키텍처
     
     class main {
-        <<진입점>>
+        <<애플리케이션>>
         +main()
         +signalHandler()
     }
 
-    class OatppServerWrapper {
-        <<서버 래퍼>>
-        +initialize()
+    class OatppSDK {
+        <<SDK 메인>>
+        +addEndpoint()
+        +addJsonEndpoint()
         +start()
         +stop()
     }
 
-    class HttpController {
-        <<HTTP 컨트롤러>>
-        +health()
-        +root()
+    class HttpHandler {
+        <<HTTP 핸들러>>
+        +handleRequest()
+        +processEndpoint()
     }
 
     class Jsonable {
-        <<인터페이스>>
+        <<JSON 인터페이스>>
         +fromJson(string)
         +toJson() string
         +fromDocument(Value)
@@ -38,69 +39,72 @@ classDiagram
     }
 
     class HealthStatus {
-        <<도메인 모델>>
+        <<JSON 모델>>
         -status: string
         -message: string
         -timestamp: int64
         -jsonLibrary: string
-        +getStatus() string
-        +getMessage() string
+        +toJson() string
+    }
+
+    class OatppServerWrapper {
+        <<인프라 래퍼>>
+        +initialize()
+        +start()
+        +stop()
     }
 
     class RapidJSON {
-        <<외부 라이브러리>>
+        <<JSON 라이브러리>>
         Document, Value
         Writer, Reader
     }
 
-    class OatppFramework {
-        <<외부 프레임워크>>
-        Router, Server, Handler
-        ObjectMapper
-    }
-
-    %% 의존 관계
-    main --> OatppServerWrapper : 생성/소유
-    OatppServerWrapper --> HttpController : 등록
-    OatppServerWrapper --> OatppFramework : 직접 사용
-    HttpController --> OatppFramework : 직접 상속
-    HttpController --> HealthStatus : 사용
+    %% SDK 계층 관계
+    main --> OatppSDK : 사용
+    OatppSDK --> HttpHandler : 관리
+    OatppSDK --> OatppServerWrapper : 내부 사용
+    HttpHandler --> HealthStatus : 응답 생성
     HealthStatus --|> Jsonable : 구현
-    Jsonable --> RapidJSON : 내부에서만 사용
+    Jsonable --> RapidJSON : 캡슐화
 
     %% 주석
-    note for main "애플리케이션 시작점"
-    note for OatppServerWrapper "oatpp 프레임워크 감싸기"
-    note for HttpController "REST API 엔드포인트"
-    note for Jsonable "JSON 처리 추상화"
-    note for HealthStatus "헬스 상태 데이터"
-    note for RapidJSON "캡슐화된 JSON 라이브러리"
+    note for main "단순한 진입점"
+    note for OatppSDK "사용자 친화적 API"
+    note for HttpHandler "요청/응답 처리"
+    note for Jsonable "JSON 추상화"
+    note for HealthStatus "응답 모델"
+    note for OatppServerWrapper "oatpp 추상화"
 ```
 
-### Phase 1.5 주요 특징
-- **Jsonable 인터페이스**: JSON 라이브러리 구현 세부사항 캡슐화
-- **RapidJSON 통합**: 성능과 메모리 효율성 개선
-- **도메인 모델**: HealthStatus 클래스로 비즈니스 로직 분리
-- **Interface Segregation**: 다른 클래스들이 RapidJSON을 직접 사용하지 않음
-- **깔끔한 아키텍처**: JSON 처리 로직의 명확한 분리
+### Phase 1.5 SDK 특징
+- **단순한 사용성**: 복잡한 설정 없이 즉시 사용 가능
+- **핸들러 기반**: 람다 함수로 간단한 엔드포인트 정의
+- **JSON 캡슐화**: Jsonable 인터페이스로 RapidJSON 숨김
+- **모듈화**: 필요한 기능만 선택적으로 포함
+- **크로스 플랫폼**: Windows/Linux/macOS 지원
 
 ## 파일 구조
 
 ```
 src/
-├── main.cpp                                    # 애플리케이션 진입점
+├── main.cpp                                    # 예제 애플리케이션
+├── sdk/
+│   ├── OatppSDK.hpp                           # SDK 메인 클래스 (향후 구현)
+│   └── handlers/
+│       └── HttpHandler.hpp                     # HTTP 핸들러 (향후 구현)
 ├── domain/models/
-│   └── HealthStatus.hpp                        # 헬스 상태 도메인 모델
+│   └── HealthStatus.hpp                        # JSON 응답 모델
 ├── infrastructure/
 │   ├── json/
 │   │   ├── Jsonable.hpp                        # JSON 직렬화 인터페이스
-│   │   └── JsonHelper.hpp                      # JSON 유틸리티 헬퍼
+│   │   └── JsonHelper.hpp                      # JSON 유틸리티
 │   └── oatpp/
-│       ├── OatppServerWrapper.hpp              # 서버 래퍼 인터페이스
+│       ├── OatppServerWrapper.hpp              # 서버 래퍼
 │       └── OatppServerWrapper.cpp              # 서버 래퍼 구현
 └── presentation/controllers/
-    ├── HttpController.hpp                      # HTTP 컨트롤러 인터페이스
-    └── HttpController.cpp                      # HTTP 컨트롤러 구현
+    ├── HttpController.hpp                      # 현재 HTTP 컨트롤러
+    └── HttpController.cpp                      # 현재 HTTP 컨트롤러 구현
 ```
 
 ## 클래스 책임
@@ -214,23 +218,24 @@ src/
 ✅ **RapidJSON 통합**: 성능 개선된 JSON 처리 (Phase 1.5)  
 ✅ **도메인 모델**: HealthStatus를 통한 비즈니스 로직 분리 (Phase 1.5)  
 
-## 향후 단계
+## 향후 SDK 개발 단계
 
-### 2단계: WebSocket 지원
-- WebSocket 엔드포인트 추가
-- JSON-RPC 2.0 프로토콜 구현
-- 구독 관리 추가
+### Phase 2: WebSocket 및 SSE SDK
+- OatppSDK 클래스 구현
+- Builder 패턴으로 간단한 설정
+- WebSocket 핸들러 추가
+- SSE 스트리밍 기능
 
-### 3단계: SSE 구현
-- Server-Sent Events 엔드포인트
-- 이벤트 스트리밍 기능
-- 클라이언트 연결 관리
+### Phase 3: MCP 프로토콜 지원
+- MCP 메시지 파싱 및 응답
+- Tools, Resources, Prompts 핸들러
+- AI 모델 통합을 위한 인터페이스
 
-### 4단계: Clean Architecture
-- 도메인 레이어 분리
-- 애플리케이션 서비스
-- 리포지토리 패턴
-- 의존성 주입
+### Phase 4: SDK 완성 및 배포
+- 헤더 온리 라이브러리로 패키징
+- 예제 및 문서 완성
+- CMake 패키지 지원
+- 성능 최적화
 
 ## 기술 노트
 
