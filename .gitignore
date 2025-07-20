@@ -23,4 +23,4 @@ http.txt
 
 # Temporary files
 *.tmp
-*.temp
+*.tempthird_party/
