@@ -2,6 +2,7 @@
 #include <iostream>
 #include <csignal>
 #include <memory>
+#include <spdlog/spdlog.h>
 
 std::unique_ptr<OatppServerWrapper> serverInstance = nullptr;
 
@@ -18,6 +19,10 @@ int main() {
     // Setup signal handlers for graceful shutdown
     std::signal(SIGINT, signalHandler);
     std::signal(SIGTERM, signalHandler);
+    
+    // Initialize spdlog with info level
+    spdlog::set_level(spdlog::level::info);
+    spdlog::flush_on(spdlog::level::info);
     
     try {
         std::cout << "Starting Oatpp SSE Server..." << std::endl;
