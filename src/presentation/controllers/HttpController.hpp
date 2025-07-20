@@ -5,6 +5,7 @@
 #include "oatpp/core/macro/component.hpp"
 #include "oatpp/parser/json/mapping/ObjectMapper.hpp"
 #include "../../domain/models/HealthStatus.hpp"
+#include <spdlog/spdlog.h>
 
 #include OATPP_CODEGEN_BEGIN(ApiController)
 
@@ -18,16 +19,27 @@ public:
     }
     
     ENDPOINT("GET", "/api/health", health) {
+        spdlog::info("REQUEST: GET /api/health");
+        
         // Create clean JSON response using Jsonable interface
         domain::HealthStatus healthStatus;
+        std::string jsonResponse = healthStatus.toJson();
         
-        auto response = createResponse(Status::CODE_200, healthStatus.toJson());
+        auto response = createResponse(Status::CODE_200, jsonResponse);
         response->putHeader(Header::CONTENT_TYPE, "application/json");
+        
+        spdlog::info("RESPONSE: /api/health -> 200 | Body: {}", jsonResponse);
         return response;
     }
     
     ENDPOINT("GET", "/", root) {
-        return createResponse(Status::CODE_200, "Oatpp SSE Server is running!");
+        spdlog::info("REQUEST: GET /");
+        
+        std::string responseBody = "Oatpp SSE Server is running!";
+        auto response = createResponse(Status::CODE_200, responseBody);
+        
+        spdlog::info("RESPONSE: / -> 200 | Body: {}", responseBody);
+        return response;
     }
 };
 
