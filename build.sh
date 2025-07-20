@@ -33,8 +33,8 @@ if [ $? -eq 0 ]; then
     echo "Build completed!"
     echo "Executable location: $BUILD_DIR/noatpp-sse"
     echo "Checking dependencies:"
-    ldd $BUILD_DIR/noatpp-sse
-    echo "Size: $(ls -lh $BUILD_DIR/noatpp-sse | awk '{print $5}')"
+    ldd ./noatpp-sse
+    echo "Size: $(ls -lh ./noatpp-sse | awk '{print $5}')"
     echo "Run: ./$BUILD_DIR/noatpp-sse to start the server"
 else
     echo "Build failed!"
