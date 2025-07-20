@@ -14,7 +14,7 @@ private:
     std::string jsonLibrary_;
 
 public:
-    // 생성자
+    // Constructor
     HealthStatus() 
         : status_("OK")
         , message_("Server is running")
@@ -27,18 +27,18 @@ public:
         , timestamp_(std::time(nullptr))
         , jsonLibrary_("RapidJSON") {}
     
-    // Getter 메서드
+    // Getter methods
     const std::string& getStatus() const { return status_; }
     const std::string& getMessage() const { return message_; }
     int64_t getTimestamp() const { return timestamp_; }
     const std::string& getJsonLibrary() const { return jsonLibrary_; }
     
-    // Setter 메서드
+    // Setter methods
     void setStatus(const std::string& status) { status_ = status; }
     void setMessage(const std::string& message) { message_ = message; }
     void setTimestamp(int64_t timestamp) { timestamp_ = timestamp; }
     
-    // Jsonable 인터페이스 구현
+    // Jsonable interface implementation
     void fromJson(const std::string& jsonStr) override {
         auto doc = parseJson(jsonStr);
         fromDocument(doc);
@@ -54,7 +54,7 @@ public:
     
     void fromDocument(const rapidjson::Value& value) override {
         if (!value.IsObject()) {
-            throw std::runtime_error("HealthStatus: JSON 값이 객체가 아닙니다");
+            throw std::runtime_error("HealthStatus: JSON value is not an object");
         }
         
         status_ = getString(value, "status", "OK");

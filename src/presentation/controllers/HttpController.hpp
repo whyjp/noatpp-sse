@@ -18,7 +18,7 @@ public:
     }
     
     ENDPOINT("GET", "/api/health", health) {
-        // Jsonable 인터페이스를 사용한 깔끔한 JSON 응답 생성
+        // Create clean JSON response using Jsonable interface
         domain::HealthStatus healthStatus;
         
         auto response = createResponse(Status::CODE_200, healthStatus.toJson());

@@ -55,6 +55,8 @@ set(SOURCES
 set(HEADERS
     src/presentation/controllers/HttpController.hpp
     src/infrastructure/oatpp/OatppServerWrapper.hpp
+    src/domain/models/HealthStatus.hpp
+    src/infrastructure/json/Jsonable.hpp
 )
 
 # Create executable
@@ -81,7 +83,7 @@ endif()
 
 # Compiler specific options
 if(MSVC)
-    target_compile_options(${PROJECT_NAME} PRIVATE /W4)
+    target_compile_options(${PROJECT_NAME} PRIVATE /W4 /D_SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING)
     set_property(TARGET ${PROJECT_NAME} PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded")
 else()
     target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic)
