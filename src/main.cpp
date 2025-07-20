@@ -27,12 +27,14 @@ int main() {
     try {
         std::cout << "Starting Oatpp SSE Server..." << std::endl;
         
-        // Create and start server
-        serverInstance = std::make_unique<OatppServerWrapper>(8081);
+        // Create and start server (will find available port automatically)
+        serverInstance = std::make_unique<OatppServerWrapper>(8080);
         serverInstance->initialize();
         
-        std::cout << "Server initialized on port " << serverInstance->getPort() << std::endl;
-        std::cout << "Visit: http://localhost:8081/ or http://localhost:8081/api/health" << std::endl;
+        int actualPort = serverInstance->getPort();
+        std::cout << "Server initialized on port " << actualPort << std::endl;
+        std::cout << "Visit: http://localhost:" << actualPort << "/ or http://localhost:" << actualPort << "/api/health" << std::endl;
+        std::cout << "Test page: http://localhost:" << actualPort << "/test" << std::endl;
         std::cout << "Press Ctrl+C to stop the server" << std::endl;
         
         // Start server (this will block)

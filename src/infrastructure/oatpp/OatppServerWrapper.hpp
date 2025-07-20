@@ -5,6 +5,7 @@
 #include "oatpp/network/Server.hpp"
 #include "oatpp/core/macro/component.hpp"
 #include <memory>
+#include <fstream>
 
 class OatppServerWrapper {
 private:
@@ -23,4 +24,9 @@ public:
     void stop();
     
     int getPort() const { return port; }
+    
+private:
+    int findAvailablePort(int startPort = 8080, int maxPort = 9080);
+    void writePortToFile(int port);
+    bool isPortAvailable(int port);
 };

@@ -304,8 +304,8 @@
     </div>
 
     <script>
-        // 서버 URL 설정
-        const serverUrl = 'http://localhost:8081';
+        // 서버 URL 설정 (현재 페이지의 포트 사용)
+        const serverUrl = `http://${window.location.hostname}:${window.location.port}`;
         
         // 페이지 로드 시 서버 상태 확인
         window.addEventListener('load', function() {
