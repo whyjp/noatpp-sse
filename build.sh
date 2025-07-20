@@ -22,12 +22,21 @@ echo "Creating build directory: $BUILD_DIR"
 mkdir -p $BUILD_DIR
 cd $BUILD_DIR
 
-echo "Running CMake..."
-cmake .. -DCMAKE_BUILD_TYPE=Release
+echo "Running CMake with third-party static libraries..."
+cmake .. -DCMAKE_BUILD_TYPE=Release \
+         -DCMAKE_FIND_LIBRARY_SUFFIXES=".a"
 
 echo "Building project..."
 cmake --build . --config Release -j$(nproc)
 
-echo "Build completed!"
-echo "Executable location: $BUILD_DIR/noatpp-sse"
-echo "Run: ./$BUILD_DIR/noatpp-sse to start the server"
+if [ $? -eq 0 ]; then
+    echo "Build completed!"
+    echo "Executable location: $BUILD_DIR/noatpp-sse"
+    echo "Checking dependencies:"
+    ldd $BUILD_DIR/noatpp-sse
+    echo "Size: $(ls -lh $BUILD_DIR/noatpp-sse | awk '{print $5}')"
+    echo "Run: ./$BUILD_DIR/noatpp-sse to start the server"
+else
+    echo "Build failed!"
+    exit 1
+fi
